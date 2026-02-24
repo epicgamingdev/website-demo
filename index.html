@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flashcard Từ Vựng Tiếng Anh - N400</title>
+    <!-- Import Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <!-- Icon library -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-blue: #4facfe;
+            --primary-dark: #2c3e50;
+            --card-shadow: 0 20px 50px rgba(0,0,0,0.1);
+            --sidebar-width: 280px;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: #f8f9fa;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- SIDEBAR --- */
+        #sidebar {
+            width: var(--sidebar-width);
+            background: white;
+            border-right: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            background: var(--primary-blue);
+            color: white;
+        }
+
+        .sidebar-header h2 {
+            margin: 0;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .word-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .word-item {
+            padding: 12px 15px;
+            margin-bottom: 5px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid transparent;
+        }
+
+        .word-item:hover {
+            background: #f0f7ff;
+            color: var(--primary-blue);
+        }
+
+        .word-item.active {
+            background: #e3f2fd;
+            border-color: var(--primary-blue);
+            color: var(--primary-blue);
+            font-weight: bold;
+        }
+
+        .word-item span {
+            font-size: 0.95rem;
+        }
+
+        /* --- MAIN CONTENT --- */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        /* Mobile Menu Toggle */
+        #menu-toggle {
+            display: none;
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: white;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 101;
+        }
+
+        /* CARD STYLES */
+        .card-container {
+            perspective: 1000px;
+            width: 340px;
+            height: 500px;
+            cursor: pointer;
+        }
+
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+
+        .card-container.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 25px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 25px;
+            box-sizing: border-box;
+            background: white;
+            box-shadow: var(--card-shadow);
+            border: 6px solid #4facfe;
+        }
+
+        .card-back {
+            transform: rotateY(180deg);
+            border-color: #ff9a9e;
+            background: #fffafa;
+            justify-content: center;
+        }
+
+        .image-frame {
+            width: 100%;
+            height: 160px;
+            border-radius: 15px;
+            overflow: hidden;
+            background: #eee;
+        }
+
+        .card-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .word-text {
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: var(--primary-dark);
+            margin: 10px 0 0 0;
+        }
+
+        .phonetic-text {
+            font-size: 1.1rem;
+            color: #7f8c8d;
+            font-style: italic;
+            margin-bottom: 10px;
+            background: #f1f2f6;
+            padding: 2px 10px;
+            border-radius: 5px;
+        }
+
+        .meaning-text {
+            font-size: 1.4rem;
+            color: #d63031;
+            font-weight: 800;
+        }
+
+        .sub-meaning {
+            font-size: 1.1rem;
+            color: #636e72;
+            margin-top: 10px;
+            background: #fff;
+            padding: 5px 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .btn-audio {
+            background: #ffeaa7;
+            border: none;
+            color: #d35400;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .controls {
+            margin-top: 30px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .nav-btn {
+            background: white;
+            border: 1px solid #ddd;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .nav-btn:hover { background: #f0f0f0; }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            #sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                transform: translateX(-100%);
+            }
+            #sidebar.open {
+                transform: translateX(0);
+            }
+            #menu-toggle {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR LIST -->
+    <div id="sidebar">
+        <div class="sidebar-header">
+            <h2><i class="fas fa-list"></i> Từ Vựng N400</h2>
+        </div>
+        <div class="word-list" id="word-list">
+            <!-- Items generated by JS -->
+        </div>
+    </div>
+
+    <button id="menu-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- MAIN APP -->
+    <div class="main-content">
+        <h1 style="font-size: 1.5rem; margin-top: 0;">🇺🇸 Học Quốc Tịch Mỹ</h1>
+
+        <div class="card-container" id="flashcard" onclick="flipCard()">
+            <div class="card-inner">
+                <div class="card-front">
+                    <div class="image-frame">
+                        <img src="" alt="Photo" class="card-image" id="front-image" onerror="this.src='https://placehold.co/400x300?text=No+Image'">
+                    </div>
+                    <div class="word-text" id="front-word">...</div>
+                    <div class="phonetic-text" id="front-phonetic">/.../</div>
+                    <button class="btn-audio" onclick="event.stopPropagation(); playAudio('front')">
+                        <i class="fas fa-volume-up"></i> Pronounce
+                    </button>
+                    <div style="font-size: 0.8rem; color: #bbb;">Click to flip</div>
+                </div>
+
+                <div class="card-back">
+                    <div class="meaning-text" id="back-meaning">...</div>
+                    <div class="sub-meaning" id="back-vietnamese">...</div>
+                    <button class="btn-audio" onclick="event.stopPropagation(); playAudio('back')">
+                        <i class="fas fa-volume-up"></i> Hear Meaning
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="nav-btn" onclick="prevCard()"><i class="fas fa-chevron-left"></i></button>
+            <div style="font-weight: bold;"><span id="curr-idx">1</span> / <span id="total-idx">0</span></div>
+            <button class="nav-btn" onclick="nextCard()"><i class="fas fa-chevron-right"></i></button>
+        </div>
+    </div>
+
+    <script>
+        const vocabularyList = [
+            { word: "Admission", phonetic: "/ədˈmɪʃn/", meaning: "Legal entry into the U.S.", vietnamese: "Sự nhập cảnh" },
+            { word: "Advocate", phonetic: "/ˈædvəkeɪt/", meaning: "To support or help.", vietnamese: "Ủng hộ / Biện hộ" },
+            { word: "Alien", phonetic: "/ˈeɪliən/", meaning: "Not a U.S. citizen.", vietnamese: "Người nước ngoài" },
+            { word: "Alimony", phonetic: "/ˈælɪməni/", meaning: "Money to ex-spouse after divorce.", vietnamese: "Tiền cấp dưỡng sau ly hôn" },
+            { word: "Allegiance", phonetic: "/əˈliːdʒəns/", meaning: "Loyalty to a country.", vietnamese: "Lòng trung thành" },
+            { word: "Alternative Sentencing", phonetic: "/ɔːlˈtɜːnətɪv ˈsentənsɪŋ/", meaning: "Punishment without jail.", vietnamese: "Hình phạt thay thế (lao động)" },
+            { word: "Amnesty", phonetic: "/ˈæmnəsti/", meaning: "Official pardon for a group.", vietnamese: "Sự ân xá" },
+            { word: "Apply", phonetic: "/əˈplaɪ/", meaning: "To ask for officially.", vietnamese: "Nộp đơn / Xin" },
+            { word: "Armed Forces", phonetic: "/ˌɑːmd ˈfɔːsɪz/", meaning: "The U.S. military.", vietnamese: "Lực lượng vũ trang" },
+            { word: "Arrested", phonetic: "/əˈrestɪd/", meaning: "Taken by police (handcuffed).", vietnamese: "Bị bắt giữ" },
+            { word: "Assassination", phonetic: "/əˌsæsɪˈneɪʃn/", meaning: "Killing a leader or famous person.", vietnamese: "Ám sát" },
+            { word: "Assaulting", phonetic: "/əˈsɔːltɪŋ/", meaning: "Attacking or hitting someone.", vietnamese: "Tấn công / Hành hung" },
+            { word: "Crime", phonetic: "/kraɪm/", meaning: "An action against the law.", vietnamese: "Tội phạm" },
+            { word: "Deportation", phonetic: "/ˌdiːpɔːˈteɪʃn/", meaning: "Sending a person back to their country.", vietnamese: "Trục xuất" },
+            { word: "Drugs", phonetic: "/drʌɡz/", meaning: "Illegal medicine (cocaine, heroin).", vietnamese: "Ma túy" },
+            { word: "Training", phonetic: "/ˈtreɪnɪŋ/", meaning: "Learning how to do something.", vietnamese: "Huấn luyện / Đào tạo" },
+            { word: "Transport", phonetic: "/ˈtrænspɔːt/", meaning: "To move things.", vietnamese: "Vận chuyển" },
+            { word: "Unconstitutional", phonetic: "/ˌʌnkɒnstɪˈtjuːʃənl/", meaning: "Not allowed by the Constitution.", vietnamese: "Vi hiến" },
+            { word: "Unlawful", phonetic: "/ʌnˈlɔːfl/", meaning: "Against the law; illegal.", vietnamese: "Bất hợp pháp" },
+            { word: "Vessel", phonetic: "/ˈvesl/", meaning: "A ship or boat.", vietnamese: "Tàu thuyền lớn" },
+            { word: "Violation", phonetic: "/ˌvaɪəˈleɪʃn/", meaning: "Breaking a rule.", vietnamese: "Sự vi phạm" },
+            { word: "Violence", phonetic: "/ˈvaɪələns/", meaning: "Using force to hurt people.", vietnamese: "Bạo lực" },
+            { word: "Volunteer", phonetic: "/ˌvɒlənˈtɪə(r)/", meaning: "To work without pay.", vietnamese: "Tình nguyện" },
+            { word: "Vote", phonetic: "/vəʊt/", meaning: "To choose a leader.", vietnamese: "Bầu cử" },
+            { word: "Weapon", phonetic: "/ˈwepən/", meaning: "Gun, knife, or bomb.", vietnamese: "Vũ khí" },
+            { word: "Willing", phonetic: "/ˈwɪlɪŋ/", meaning: "Ready to do something.", vietnamese: "Sẵn lòng" },
+            { word: "Withheld Adjudication", phonetic: "/wɪθˈheld əˌdʒuːdɪˈkeɪʃn/", meaning: "Judge delays the final decision.", vietnamese: "Hoãn phán quyết" }
+        ];
+
+        let currentIndex = 0;
+        const cardContainer = document.getElementById('flashcard');
+        const listContainer = document.getElementById('word-list');
+
+        function init() {
+            document.getElementById('total-idx').innerText = vocabularyList.length;
+            renderList();
+            renderCard();
+        }
+
+        function renderList() {
+            listContainer.innerHTML = '';
+            vocabularyList.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = `word-item ${index === currentIndex ? 'active' : ''}`;
+                div.innerHTML = `<span>${item.word}</span> <i class="fas fa-chevron-right" style="font-size: 0.7rem; opacity: 0.5;"></i>`;
+                div.onclick = () => {
+                    currentIndex = index;
+                    renderCard();
+                    renderList();
+                    if(window.innerWidth <= 768) toggleSidebar();
+                };
+                listContainer.appendChild(div);
+            });
+            
+            const activeItem = listContainer.querySelector('.active');
+            if(activeItem) activeItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function renderCard() {
+            const data = vocabularyList[currentIndex];
+            document.getElementById('front-word').innerText = data.word;
+            document.getElementById('front-phonetic').innerText = data.phonetic;
+            document.getElementById('back-meaning').innerText = data.meaning;
+            document.getElementById('back-vietnamese').innerText = data.vietnamese;
+            document.getElementById('curr-idx').innerText = currentIndex + 1;
+            
+            document.getElementById('front-image').src = `https://loremflickr.com/400/300/${encodeURIComponent(data.word)},america?random=${currentIndex}`;
+            
+            if(cardContainer.classList.contains('flipped')) {
+                cardContainer.classList.remove('flipped');
+            }
+            renderList();
+        }
+
+        function flipCard() { cardContainer.classList.toggle('flipped'); }
+        function nextCard() { currentIndex = (currentIndex + 1) % vocabularyList.length; renderCard(); }
+        function prevCard() { currentIndex = (currentIndex - 1 + vocabularyList.length) % vocabularyList.length; renderCard(); }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        function playAudio(side) {
+            window.speechSynthesis.cancel();
+            const data = vocabularyList[currentIndex];
+            const utterance = new SpeechSynthesisUtterance(side === 'front' ? data.word : data.meaning);
+            utterance.lang = 'en-US';
+            utterance.rate = 0.8;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        init();
+    </script>
+</body>
+</html>
